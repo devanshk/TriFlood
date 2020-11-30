@@ -19,11 +19,27 @@ class TriFloodFill():
 
         def isOutOfBounds(self, x: int, y: int) -> bool:
             # TODO: Implement based on rotating the triangle grid 45 degrees
-            pass
+            # and not just on the 2D array bounds
+            return x < 0 or x >= self.height or y < 0 or y >= self.width
 
         def __str__(self) -> str:
-            return '[%d width, %d height]<%d colors> %s' % \
-                (self.width, self.height, self.colors, str(self.board))
+            out = '[%d width, %d height]<%d colors> %s' % \
+                (self.width, self.height, self.colors, self.board)
+
+            board_out = ''
+            for row in range(len(self.board)):
+                board_out += ' ' * (len(self.board)-1-row)
+                tiles = row*2 + 1
+                for i in range(tiles):
+                    if i % 2 == 0:
+                        # board_out += '[%d,%d]' % (i//2, row)
+                        board_out += str(self.board[i//2][row])
+                    else:
+                        # board_out += '[%d,%d]' % (row, i//2)
+                        board_out += str(self.board[row][i//2])
+                board_out += '\n'
+
+            return board_out
 
     class Move():
         def __init__(self, x: int, y: int, color: int):
@@ -34,9 +50,9 @@ class TriFloodFill():
     # Returns an initial randomized state based on the 2D map representation
     # at https://twitter.com/ZenoRogue/status/1081254363216138240
     #
-    # The value of state[i][j] is the number of the color stored there
+    # The value of state.board[i][j] is the number of the color stored there
     @staticmethod
-    def init(width: int = 5, height: int = 10, colors: int = 3) -> State:
+    def init(width: int = 5, height: int = 5, colors: int = 3) -> State:
         return TriFloodFill().State(
             width, height, colors,
             [[random.randint(0, colors-1) for i in range(width)]
@@ -63,10 +79,12 @@ class TriFloodFill():
             new_state, move.x, move.y, cur_color, move.color
         )
 
-    # Recursively flood-fills from the given point in the given state
+    # Destructively flood-fills from the given point in the given state
     def _floodFill(state: State, x: int, y: int, prevColor: int, newColor: int) -> State:
         # Base Case
-        if(state.isOutOfBounds(x, y) or state.board[x][y] != prevColor):
+        if(state.isOutOfBounds(x, y)
+           or state.board[x][y] != prevColor
+           or state.board[x][y] == newColor):
             return
 
         # Color this tile
@@ -78,3 +96,12 @@ class TriFloodFill():
         TriFloodFill._floodFill(state, y+1, x, prevColor, newColor)
 
         return state
+
+
+print('initial state')
+state1 = TriFloodFill.init()
+print(state1)
+fill_color = 0 if state1.board[0][0] == 1 else 1
+print('filling (0,0) with %d' % fill_color)
+state2 = TriFloodFill.step(state1, TriFloodFill().Move(0, 0, fill_color))
+print(state2)
